@@ -3,6 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { CheckIn, CheckInPhoto, CheckInWithPhotos, PhotoCaptureState } from '@/types/database';
 import { useAuth } from './useAuth';
+import { analyzeCheckInPhotos } from '@/lib/firebaseFunctions';
+import { toast } from 'sonner';
 
 export const useCheckIns = () => {
   const { user } = useAuth();
@@ -157,18 +159,20 @@ export const useCheckIns = () => {
           left_profile: photos.left_profile,
           right_profile: photos.right_profile,
         },
-        language: 'en', // TODO: Get from user settings
+        language: 'en' as const, // TODO: Get from user settings
       };
 
-      const { data: analysisResult, error: analysisError } = await supabase.functions.invoke(
-        'skin-analysis-v2',
-        {
-          body: analysisPayload,
-        }
-      );
-
-      if (analysisError) {
-        console.error('Analysis error:', analysisError);
+      let analysisResult: Awaited<ReturnType<typeof analyzeCheckInPhotos>> | null = null;
+      try {
+        analysisResult = await analyzeCheckInPhotos(analysisPayload);
+        console.log('[AI] Check-in analysis complete:', analysisResult);
+      } catch (analysisError) {
+        console.error('[AI] Check-in analysis error:', analysisError);
+        toast.error(
+          analysisError instanceof Error
+            ? `AI analysis failed: ${analysisError.message}`
+            : 'AI analysis failed. Your photos were saved — analysis can be retried later.'
+        );
         // Don't throw - check-in is still valid without analysis
       }
 
