@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRoutines } from '@/hooks/useRoutines';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,30 +22,53 @@ const TodayPlan: React.FC = () => {
   const [expandedStep, setExpandedStep] = useState<string | null>(null);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [profileData, setProfileData] = useState<any>(undefined);
+  const [profileLoading, setProfileLoading] = useState(true);
+
+  // Load profile eagerly on mount so we can gate the generate buttons
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        if (isGuest) {
+          const profile = guestStorage.getProfile();
+          console.log('[TodayPlan] Guest mode, profile:', profile ? 'found' : 'null');
+          setProfileData(profile);
+        } else if (user) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          if (error) {
+            console.log('[TodayPlan] Auth user, supabase error:', error.message);
+          }
+          console.log('[TodayPlan] Auth user, profile:', data ? 'found' : 'null');
+          setProfileData(data);
+        } else {
+          console.log('[TodayPlan] No user and not guest, profile set to null');
+          setProfileData(null);
+        }
+      } catch (error) {
+        console.error('[TodayPlan] Failed to load profile:', error);
+        setProfileData(null);
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+    loadProfile();
+  }, [isGuest, user]);
 
   const generatePlanWithoutPhotos = async () => {
+    console.log('[TodayPlan] generatePlanWithoutPhotos clicked, isGuest:', isGuest, 'profile:', profileData ? 'exists' : 'null');
+
+    if (!profileData) {
+      toast.error('Please complete onboarding to generate a plan.');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      // Get profile data
-      let profileData: any;
-      if (isGuest) {
-        profileData = guestStorage.getProfile();
-      } else if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        profileData = data;
-      }
-
-      if (!profileData) {
-        toast.error('Please complete your profile first');
-        setIsGenerating(false);
-        return;
-      }
-
       // Call Firebase Cloud Function for AI analysis
       const data = await generateSkinAnalysis({
         profile: {
@@ -84,22 +107,16 @@ const TodayPlan: React.FC = () => {
 
   const handlePhotoComplete = async (photos: PhotoCaptureState) => {
     setShowPhotoModal(false);
+    console.log('[TodayPlan] handlePhotoComplete called, isGuest:', isGuest, 'profile:', profileData ? 'exists' : 'null');
+
+    if (!profileData) {
+      toast.error('Please complete onboarding to generate a plan.');
+      return;
+    }
+
     setIsGenerating(true);
 
     try {
-      // Similar to generatePlanWithoutPhotos but include photos
-      let profileData: any;
-      if (isGuest) {
-        profileData = guestStorage.getProfile();
-      } else if (user) {
-        const { data } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-        profileData = data;
-      }
-
       // Call Firebase Cloud Function for AI analysis with photo
       const data = await generateSkinAnalysis({
         profile: {
@@ -147,6 +164,9 @@ const TodayPlan: React.FC = () => {
   // Check for guest plan
   const guestPlan = isGuest ? guestStorage.getActivePlan() : null;
 
+  const hasProfile = !!profileData;
+  const buttonsDisabled = isGenerating || profileLoading || !hasProfile;
+
   if (!activeRoutine && !guestPlan) {
     return (
       <div className="p-6">
@@ -163,16 +183,37 @@ const TodayPlan: React.FC = () => {
             Get your personalized skincare routine based on your profile and skin analysis.
           </p>
 
+          {/* Inline error when profile is missing */}
+          {!profileLoading && !hasProfile && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-900 mb-3">
+                Please complete onboarding to generate a plan.
+              </p>
+              <Button
+                onClick={() => { window.location.href = '/dashboard'; }}
+                variant="outline"
+                className="border-amber-400 text-amber-900 hover:bg-amber-100 text-sm"
+              >
+                Go to Onboarding
+              </Button>
+            </div>
+          )}
+
           <div className="space-y-4">
             <Button
               onClick={generatePlanWithoutPhotos}
-              disabled={isGenerating}
-              className="w-full h-14 bg-gold text-cream hover:bg-gold/90 text-base"
+              disabled={buttonsDisabled}
+              className="w-full h-14 bg-gold text-cream hover:bg-gold/90 text-base disabled:opacity-50"
             >
               {isGenerating ? (
                 <span className="flex items-center gap-2">
                   <span className="animate-spin rounded-full h-4 w-4 border-2 border-cream border-t-transparent" />
                   Generating...
+                </span>
+              ) : profileLoading ? (
+                <span className="flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-4 w-4 border-2 border-cream border-t-transparent" />
+                  Loading profile...
                 </span>
               ) : (
                 'Generate Plan (No Photos)'
@@ -182,7 +223,8 @@ const TodayPlan: React.FC = () => {
             <Button
               onClick={() => setShowPhotoModal(true)}
               variant="outline"
-              className="w-full h-14 border-gold/30 text-gold hover:bg-gold/5 text-base"
+              disabled={buttonsDisabled}
+              className="w-full h-14 border-gold/30 text-gold hover:bg-gold/5 text-base disabled:opacity-50"
             >
               <Camera className="w-5 h-5 mr-2" />
               Add Photos for Deeper Analysis
