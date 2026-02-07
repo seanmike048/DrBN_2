@@ -1,0 +1,215 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;700&family=Playfair+Display+SC:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Docteur Beauté Noire Design System
+   Premium, Apple-like aesthetic for melanin-rich skincare
+   Based on Figma specifications
+*/
+
+@layer base {
+  :root {
+    /* Brand Colors - From Figma */
+    --cream: 48 45% 93%;           /* #F6F4E8 - Main background */
+    --cream-footer: 48 43% 92%;    /* rgba(246, 244, 232, 0.95) */
+    --charcoal: 30 19% 10%;        /* #1F1A14 - Primary text */
+    --gold: 35 40% 43%;            /* #9B7542 - CTA buttons */
+    --gold-hover: 35 42% 37%;      /* #8A6535 - Button hover */
+    --brown: 35 22% 31%;           /* #5A5245 - Muted text */
+    --sand: 40 22% 79%;            /* #D9D1BC - Borders */
+    --sand-muted: 35 25% 65%;      /* Muted accents */
+    --gold-accent: 38 36% 51%;     /* #B08D54 - DOCTEUR label */
+    
+    /* Semantic Tokens */
+    --background: var(--cream);
+    --foreground: var(--charcoal);
+    --primary: var(--gold);
+    --primary-foreground: 0 0% 100%;
+    --secondary: var(--cream);
+    --secondary-foreground: var(--charcoal);
+    --muted: var(--sand);
+    --muted-foreground: var(--brown);
+    --accent: var(--gold-accent);
+    --accent-foreground: var(--charcoal);
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: var(--sand);
+    --input: var(--sand);
+    --ring: var(--gold);
+    --card: var(--cream);
+    --card-foreground: var(--charcoal);
+    --popover: var(--cream);
+    --popover-foreground: var(--charcoal);
+
+    /* Radius */
+    --radius: 16px;
+    --radius-sm: 10px;
+
+    /* Typography Scale - From Figma */
+    --font-display: 'Playfair Display SC', serif;
+    --font-body: 'Lato', sans-serif;
+    
+    /* Figma Shadows */
+    --shadow-cta: 0px 10px 15px -3px rgba(0, 0, 0, 0.1), 0px 4px 6px -4px rgba(0, 0, 0, 0.1);
+    --shadow-footer: 0px -4px 10px rgba(184, 147, 94, 0.2);
+    --shadow-soft: 0 4px 12px rgba(155, 117, 66, 0.08);
+    --shadow-elegant: 0 8px 24px rgba(155, 117, 66, 0.12);
+
+    /* Sidebar (keeping defaults) */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    /* Keep dark mode minimal - not a priority */
+    --background: 30 19% 10%;
+    --foreground: 48 45% 93%;
+    --primary: var(--gold);
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 15% 15%;
+    --secondary-foreground: 48 45% 93%;
+    --muted: 30 15% 20%;
+    --muted-foreground: 40 15% 60%;
+    --accent: var(--gold-accent);
+    --accent-foreground: 48 45% 93%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 15% 20%;
+    --input: 30 15% 20%;
+    --ring: var(--gold);
+    --card: 30 15% 12%;
+    --card-foreground: 48 45% 93%;
+    --popover: 30 15% 12%;
+    --popover-foreground: 48 45% 93%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-body);
+  }
+
+  /* Typography classes */
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
+
+@layer components {
+  /* Primary CTA Button - Figma exact */
+  .btn-primary {
+    @apply w-full py-4 text-sm font-normal tracking-wide text-white transition-all duration-200;
+    background: hsl(var(--gold));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-cta);
+    letter-spacing: 0.28px;
+  }
+
+  .btn-primary:hover {
+    background: hsl(var(--gold-hover));
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Footer container with shadow */
+  .footer-container {
+    background: hsl(var(--cream-footer));
+    border-top: 1px solid hsl(var(--sand) / 0.6);
+    box-shadow: var(--shadow-footer);
+  }
+
+  /* DOCTEUR label styling */
+  .label-docteur {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: 3.6px;
+    text-transform: uppercase;
+    color: hsl(var(--gold-accent));
+  }
+
+  /* Main heading - Beauté Noire */
+  .heading-main {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 48px;
+    letter-spacing: -1.1px;
+    color: hsl(var(--charcoal));
+  }
+
+  /* Body text - primary */
+  .text-body-primary {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 17px;
+    line-height: 27px;
+    color: hsl(var(--charcoal));
+  }
+
+  /* Body text - secondary */
+  .text-body-secondary {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 24px;
+    color: hsl(var(--brown));
+  }
+
+  /* Disclaimer text */
+  .text-disclaimer {
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 13px;
+    line-height: 20px;
+    color: hsl(var(--brown));
+  }
+
+  /* Language toggle styling */
+  .lang-toggle {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    line-height: 20px;
+    color: hsl(var(--charcoal));
+  }
+}

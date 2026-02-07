@@ -1,0 +1,13 @@
+﻿node_modules/
+functions/node_modules/
+dist/
+build/
+out/
+.vite/
+.next/
+.firebase/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
