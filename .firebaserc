@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "drbn1-40b01"
-  }
+    "default": "drbn1-40b01",
+    "test1": "drbn1-40b01"
+  },
+  "targets": {},
+  "etags": {}
 }
