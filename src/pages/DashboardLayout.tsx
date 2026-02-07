@@ -21,16 +21,20 @@ const DashboardLayout: React.FC = () => {
           setNeedsOnboarding(!guestProfile);
         } else if (user) {
           // Check if authenticated user has completed profile
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('profiles')
             .select('skin_type')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
+          if (error) {
+            console.error('Error fetching profile:', error.message);
+          }
           setNeedsOnboarding(!profile || !profile.skin_type);
         }
       } catch (error) {
         console.error('Error checking onboarding status:', error);
+        setNeedsOnboarding(true);
       } finally {
         setCheckingOnboarding(false);
       }

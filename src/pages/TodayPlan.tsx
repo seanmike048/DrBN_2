@@ -38,7 +38,7 @@ const TodayPlan: React.FC = () => {
             .from('profiles')
             .select('*')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
           if (error) {
             console.log('[TodayPlan] Auth user, supabase error:', error.message);
           }

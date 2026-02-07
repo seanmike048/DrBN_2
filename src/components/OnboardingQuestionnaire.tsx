@@ -6,6 +6,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { guestStorage, GuestProfile } from '@/lib/guestStorage';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface OnboardingQuestionnaireProps {
   onComplete: (profile: GuestProfile) => void;
@@ -182,7 +183,7 @@ const OnboardingQuestionnaire: React.FC<OnboardingQuestionnaireProps> = ({ onCom
         guestStorage.saveProfile(profile);
       } else if (user) {
         // Save to Supabase for authenticated users
-        await supabase.from('profiles').upsert({
+        const { error } = await supabase.from('profiles').upsert({
           id: user.id,
           skin_type: profile.skin_type,
           concerns: profile.main_concern ? [profile.main_concern] : [],
@@ -191,11 +192,18 @@ const OnboardingQuestionnaire: React.FC<OnboardingQuestionnaireProps> = ({ onCom
           climate: profile.climate as any,
           budget_tier: profile.budget as any,
         });
+        if (error) {
+          console.error('Supabase profile upsert error:', error);
+          toast.error('Failed to save profile. Please try again.');
+          setIsSubmitting(false);
+          return;
+        }
       }
 
       onComplete(profile);
     } catch (error) {
       console.error('Failed to save profile:', error);
+      toast.error('Failed to save profile. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
